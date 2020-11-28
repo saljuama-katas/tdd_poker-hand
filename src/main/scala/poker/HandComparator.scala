@@ -3,10 +3,18 @@ package poker
 class HandComparator {
   def compare(firstPlayerHand: String, secondPlayerHand: String): Int = {
 
-    highestCardRule(
-      valuesFromHand(firstPlayerHand),
-      valuesFromHand(secondPlayerHand)
-    )
+    val player1handValues = valuesFromHand(firstPlayerHand)
+    val player2handValues = valuesFromHand(secondPlayerHand)
+
+    val player1HasPair = handValuesCounts(player1handValues).values.exists(x => x == 2)
+    if (player1HasPair) 1
+    else {
+      highestCardRule(
+        player1handValues,
+        player2handValues
+      )
+    }
+
   }
 
   private def highestCardRule(first: Seq[Int], second: Seq[Int]): Int = {
@@ -19,6 +27,10 @@ class HandComparator {
       }
       .find(x => x != 0)
       .getOrElse(0)
+  }
+
+  private def handValuesCounts(values: Seq[Int]): Map[Int, Int] = {
+    values.map { x => x -> values.count(y => x == y) }.toMap
   }
 
   private def valuesFromHand(hand: String): Seq[Int] = {

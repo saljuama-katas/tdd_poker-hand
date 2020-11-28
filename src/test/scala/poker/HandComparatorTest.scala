@@ -26,6 +26,13 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
         winner mustBe 0
       }
     }
+
+    "use the Pair rule" when {
+      "player has a pair" in {
+        val winner = comparator.compare("2H 2D 3S 4C 5D", "2C 3H 4C 5S AD")
+        winner mustBe 1
+      }
+    }
   }
 
 
