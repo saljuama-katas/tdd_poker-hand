@@ -4,10 +4,8 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class HandComparatorTest extends AnyWordSpec with Matchers {
-
   "The Hand Comparator" can {
     val comparator = new HandComparator()
-
     "use the High Card rule" when {
       "highest card in both hands is different" in {
         val winner = comparator.compare("2H 3D 4S 5C AD", "2D 3H 4C 5S KD")
@@ -26,15 +24,19 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
         winner mustBe 0
       }
     }
-
     "use the Pair rule" when {
-      "player has a pair" in {
+      "one player has a pair, then wins" in {
         val winner = comparator.compare("2H 2D 3S 4C 5D", "2C 3H 4C 5S AD")
+        winner mustBe 1
+      }
+      "both player have a pair, the one with higher pair wins" in {
+        val winner = comparator.compare("2H 2D 3S 4C 5D", "2C 3H 3C 4S 5D")
+        winner mustBe 2
+      }
+      "both players have a pair of equal value, the one with the highest card wins" in {
+        val winner = comparator.compare("2H 2D 3S 4C AD", "2C 2S 3C 4S 5D")
         winner mustBe 1
       }
     }
   }
-
-
-
 }
