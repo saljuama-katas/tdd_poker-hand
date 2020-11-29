@@ -92,5 +92,25 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
         winner mustBe Some(2)
       }
     }
+    "apply the Four of a Kind rule" when {
+      "Four of a kind beats full house" in {
+        val winner = comparator.compare("7H 7C 7S 8H 8D", "3H 3D 3C 3S 4H")
+        winner mustBe Some(2)
+      }
+      "both players with Four of a Kind, the highest four of a kind wins" in {
+        val winner = comparator.compare("4H 4C 4S 4D 8D", "3H 3D 3C 3S AH")
+        winner mustBe Some(1)
+      }
+    }
+    "apply the Straight Flush rule" when {
+      "Straight Flush beads Four of a kind" in {
+        val winner = comparator.compare("2S 3S 4S 5S 6S", "AH AD AC AS 4H")
+        winner mustBe Some(1)
+      }
+      "both players with a Straight Flush, the highest card wins" in {
+        val winner = comparator.compare("2S 3S 4S 5S 6S", "3D 4D 5D 6D 7D")
+        winner mustBe Some(2)
+      }
+    }
   }
 }

@@ -40,6 +40,8 @@ import HandComparator._
 
 class HandComparator {
   private val prioritizedRules: Seq[PokerRule] = Seq(
+    StraightFlush(),
+    FourOfAKind(),
     FullHouse(),
     Flush(),
     Straight(),
@@ -48,7 +50,6 @@ class HandComparator {
     Pair(),
     HighestCard()
   )
-
   def compare(firstPlayerHand: String, secondPlayerHand: String): Option[Int] = {
     val player1Hand = parseHand(firstPlayerHand)
     val player2Hand = parseHand(secondPlayerHand)
@@ -62,7 +63,6 @@ class HandComparator {
 
 trait PokerRule {
   def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int]
-
   protected def cardValuesInHand(hand: Hand): Seq[Int] = hand.map { _._1 }
   protected def findValueNTimes(hand: Hand, times: Int): Option[Int] = {
     val values = cardValuesInHand(hand)
@@ -184,5 +184,35 @@ case class FullHouse() extends PokerRule {
       valueCounts.find {_._2 == 3}.map {_._1},
       valueCounts.find {_._2 == 2}.map {_._1}
     )
+  }
+}
+case class FourOfAKind() extends PokerRule {
+  override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
+    playerWithHighestValue((
+      findValueNTimes(player1Hand, 4),
+      findValueNTimes(player2Hand, 4)
+    ))
+  }
+}
+case class StraightFlush() extends PokerRule {
+  override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
+    playerWithHighestValue(
+      playerHasConsecutiveValuesOfSameSuite(player1Hand),
+      playerHasConsecutiveValuesOfSameSuite(player2Hand)
+    )
+  }
+
+  private def playerHasConsecutiveValuesOfSameSuite(hand: Hand): Option[Int] = {
+    if (hand.map { _._2 }.distinct.length != 1) None
+    else {
+      val highestInConsecutive = cardValuesInHand(hand)
+        .sorted
+        .fold(-1)((acc, value) => acc match {
+          case -1 => value
+          case _ if value - acc == 1 => value
+          case _ => 0
+        })
+      if (highestInConsecutive > 0) Some(highestInConsecutive) else None
+    }
   }
 }
