@@ -82,5 +82,15 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
         winner mustBe Some(1)
       }
     }
+    "apply the Full House rule" when {
+      "full house beats flush" in {
+        val winner = comparator.compare("7H 7C 7S 8H 8D", "3H 4H 5H 6H AH")
+        winner mustBe Some(1)
+      }
+      "both players with full house, the highest three of a kind wins" in {
+        val winner = comparator.compare("7H 7C 7S AH AD", "9H 9C 9S JC JD")
+        winner mustBe Some(2)
+      }
+    }
   }
 }

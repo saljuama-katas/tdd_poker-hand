@@ -40,6 +40,7 @@ import HandComparator._
 
 class HandComparator {
   private val prioritizedRules: Seq[PokerRule] = Seq(
+    FullHouse(),
     Flush(),
     Straight(),
     ThreeOfAKind(),
@@ -161,5 +162,27 @@ case class Flush() extends PokerRule {
   private def highestCardWithFlush(hand: Hand): Option[Int] = {
     if (hand.map { _._2 }.distinct.length != 1) None
     else hand.map { _._1 }.headOption
+  }
+}
+case class FullHouse() extends PokerRule {
+  override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
+    (handFullHouseValues(player1Hand), handFullHouseValues(player2Hand)) match {
+      case ((Some(_), Some(_)), (None, None)) => Some(1)
+      case ((None, None), (Some(_), Some(_))) => Some(2)
+      case ((Some(p13), Some(_)), (Some(p23), Some(_))) if p13 > p23 => Some(1)
+      case ((Some(p13), Some(_)), (Some(p23), Some(_))) if p13 < p23 => Some(2)
+      case _ => None
+    }
+  }
+  private def handFullHouseValues(hand: Hand): (Option[Int], Option[Int]) = {
+    val values = cardValuesInHand(hand)
+    val valueCounts = values
+      .map { x => x -> values.count(y => x == y) }
+      .distinct
+      .sortBy { t => (-t._2, -t._1) }
+    (
+      valueCounts.find {_._2 == 3}.map {_._1},
+      valueCounts.find {_._2 == 2}.map {_._1}
+    )
   }
 }

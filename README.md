@@ -24,7 +24,7 @@ Poker hands are ranked by the following partial order from lowest to highest:
 * **Three of a Kind**: 3 cards of the same value. Ranked by the value of the 3 cards.
 * **Straight**: 5 cards with consecutive values. Ranked by their highest card.
 * **Flush**: 5 cards of the same suit. Ranked by their highest card.
-* **Full House**: Three of a Kind + Pair. Ranked by the value of the 3 cards, then ranked by the value of the pair.
+* **Full House**: Three of a Kind + Pair. Ranked by the value of the 3 cards.
 * **Four of a kind**: 4 cards with the same value. Ranked by the value of the 4 cards. 
 * **Straight flush**: 5 cards of the same suit with consecutive values. Ranked by the highest card.
 
