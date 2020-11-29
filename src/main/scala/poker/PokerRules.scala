@@ -4,7 +4,13 @@ import PokerDomain._
 import Suite._
 
 sealed trait PokerRule {
+  def name: String
   def findWinner(player1Hand: Hand, player2Hand: Hand): Winner
+
+  def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Seq[Card])] = {
+    findWinner(player1Hand, player2Hand)
+      .map { player => (player, name, Seq())}
+  }
 
   protected def handValues(hand: Hand): Seq[Int] = hand.map {_._1}
 
@@ -70,6 +76,7 @@ sealed trait PokerRule {
 }
 
 case class HighestCard() extends PokerRule {
+  override def name: String = "Highest Card"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     val player1HandValues = handValues(player1Hand)
     val player2HandValues = handValues(player2Hand)
@@ -83,6 +90,7 @@ case class HighestCard() extends PokerRule {
 }
 
 case class Pair() extends PokerRule {
+  override def name: String = "Pair"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     ruleWinner((
       handHasValueRepeatedNTimes(player1Hand, 2),
@@ -92,6 +100,7 @@ case class Pair() extends PokerRule {
 }
 
 case class DoublePair() extends PokerRule {
+  override def name: String = "Double Pair"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     combinationWinner((
       handHasCombinationsOfNTimes(player1Hand, 2, 2),
@@ -101,6 +110,7 @@ case class DoublePair() extends PokerRule {
 }
 
 case class ThreeOfAKind() extends PokerRule {
+  override def name: String = "Three of a kind"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     ruleWinner((
       handHasValueRepeatedNTimes(player1Hand, 3),
@@ -110,6 +120,7 @@ case class ThreeOfAKind() extends PokerRule {
 }
 
 case class Straight() extends PokerRule {
+  override def name: String = "Straight"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     ruleWinner(
       handHasConsecutiveValues(player1Hand),
@@ -119,6 +130,7 @@ case class Straight() extends PokerRule {
 }
 
 case class Flush() extends PokerRule {
+  override def name: String = "Flush"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     ruleWinner(
       highestCardWithFlush(player1Hand),
@@ -132,6 +144,7 @@ case class Flush() extends PokerRule {
 }
 
 case class FullHouse() extends PokerRule {
+  override def name: String = "Full House"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     combinationWinner((
       handHasCombinationsOfNTimes(player1Hand, 3, 2),
@@ -141,6 +154,7 @@ case class FullHouse() extends PokerRule {
 }
 
 case class FourOfAKind() extends PokerRule {
+  override def name: String = "Four of a kind"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     ruleWinner((
       handHasValueRepeatedNTimes(player1Hand, 4),
@@ -150,6 +164,7 @@ case class FourOfAKind() extends PokerRule {
 }
 
 case class StraightFlush() extends PokerRule {
+  override def name: String = "Straight Flush"
   override def findWinner(player1Hand: Hand, player2Hand: Hand): Option[Int] = {
     ruleWinner(
       playerHasConsecutiveValuesOfSameSuite(player1Hand),
