@@ -25,7 +25,7 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
       }
     }
     "use the Pair rule" when {
-      "one player has a pair, then wins" in {
+      "pair beats highest card" in {
         val winner = comparator.compare("2H 2D 3S 4C 5D", "2C 3H 4C 5S AD")
         winner mustBe 1
       }
@@ -37,6 +37,21 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
         val winner = comparator.compare("2H 2D 3S 4C AD", "2C 2S 3C 4S 5D")
         winner mustBe 1
       }
+    }
+    "use the Double Pair rule" when {
+      "double pair beats pair" in {
+        val winner = comparator.compare("2H 2D 3S 3C 5D", "2C 3H 4C AS AD")
+        winner mustBe 1
+      }
+      "both players with double pair, the highest pair wins" in {
+        val winner = comparator.compare("3H 3D 4C JS JD", "2H 2D 4S AC AD")
+        winner mustBe 2
+      }
+      "both players with double pair, and equal highest pair, then 2nd highest pair wins" in {
+        val winner = comparator.compare("AS AH 3H 3D 4C", "AC AD 2H 2D KS")
+        winner mustBe 1
+      }
+
     }
   }
 }

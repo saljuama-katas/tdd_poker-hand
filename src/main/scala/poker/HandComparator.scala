@@ -38,9 +38,37 @@ case class PairRule() extends PokerRule {
   }
 }
 
+case class DoublePairRule() extends PokerRule {
+  override def name = "Double Pair"
+  override def rule(player1HandValues: Seq[Int], player2HandValues: Seq[Int]): Int = {
+    (handDoublePairValues(player1HandValues), handDoublePairValues(player2HandValues)) match {
+      case ((f1, _), (s1, _)) if f1 > s1 => 1
+      case ((f1, _), (s1, _)) if f1 < s1 => 2
+      case ((f1, f2), (s1, s2)) if f1 == s1 && f2 > s2 => 1
+      case ((f1, f2), (s1, s2)) if f1 == s1 && f2 < s2 => 2
+      case _ => 0
+    }
+  }
+
+  private def handDoublePairValues(values: Seq[Int]): (Int, Int) = {
+    val pairs = values
+      .map { x => x -> values.count(y => x == y) }
+      .filter { _._2 == 2 }
+      .distinct
+      .map { _._1 }
+      .sorted { Ordering.Int.reverse }
+
+    pairs match {
+      case Seq(pair1Value, pair2Value) => (pair1Value, pair2Value)
+      case _ => (0, 0)
+    }
+  }
+}
+
 class HandComparator {
   def compare(firstPlayerHand: String, secondPlayerHand: String): Int = {
     val rules: Seq[PokerRule] = Seq(
+      DoublePairRule(),
       PairRule(),
       HighestCardRule()
     )
