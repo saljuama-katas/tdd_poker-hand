@@ -5,6 +5,8 @@ import Suite._
 
 sealed trait PokerRule {
   def name: String
+
+  @deprecated
   def findWinner(player1Hand: Hand, player2Hand: Hand): Winner
 
   def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Seq[Card])] = {
@@ -52,12 +54,23 @@ sealed trait PokerRule {
     if (highestInConsecutive > 0) Some(highestInConsecutive) else None
   }
 
+  @deprecated
   protected def ruleWinner(values: (Option[Int], Option[Int])): Winner = {
     values match {
       case (Some(player1), Some(player2)) if player1 > player2 => Some(1)
       case (Some(player1), Some(player2)) if player1 < player2 => Some(2)
       case (Some(_), None) => Some(1)
       case (None, Some(_)) => Some(2)
+      case _ => None
+    }
+  }
+
+  protected def ruleWinnerWithCards(cards: (Option[Card], Option[Card])): Option[(Int, String, Seq[Card])] = {
+    cards match {
+      case (Some(player1Card), Some((player2, _))) if player1Card._1 > player2 => Some(1, name, Seq(player1Card))
+      case (Some((player1, _)), Some(player2Card)) if player1 < player2Card._1 => Some(2, name, Seq(player2Card))
+      case (Some(player1Card), None) => Some(1, name, Seq(player1Card))
+      case (None, Some(player2Card)) => Some(2, name, Seq(player2Card))
       case _ => None
     }
   }
@@ -84,6 +97,15 @@ case class HighestCard() extends PokerRule {
       .map { index => (Some(player1HandValues(index)), Some(player2HandValues(index))) }
       .map {ruleWinner}
       .filter {_.isDefined}
+      .map { case Some(player) => player }
+      .headOption
+  }
+
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Seq[(Int, Suite)])] = {
+    Range.inclusive(0, 4)
+      .map { index => (Some(player1Hand(index)), Some(player2Hand(index))) }
+      .map { ruleWinnerWithCards }
+      .filter { _.isDefined }
       .map { case Some(player) => player }
       .headOption
   }

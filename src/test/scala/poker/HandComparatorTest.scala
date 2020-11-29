@@ -2,6 +2,7 @@ package poker
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import poker.Suite._
 
 class HandComparatorTest extends AnyWordSpec with Matchers {
   "The Hand Comparator" can {
@@ -9,15 +10,15 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
     "apply the High Card rule" when {
       "highest card in both hands is different" in {
         val winner = comparator.compare("2H 3D 4S 5C AD", "2D 3H 4C 5S KD")
-        winner mustBe Some(1, "Highest Card", Seq())
+        winner mustBe Some(1, "Highest Card", Seq((14, Diamonds)))
       }
       "second highest card when first card is tied" in {
         val winner = comparator.compare("2H 3D 4S 5C AD", "2D 3H 4C 6S AS")
-        winner mustBe Some(2, "Highest Card", Seq())
+        winner mustBe Some(2, "Highest Card", Seq((6, Spades)))
       }
       "last card when all previous cards are tied" in {
         val winner = comparator.compare("3H JD QS KC AD", "2D JH QC KS AS")
-        winner mustBe Some(1, "Highest Card", Seq())
+        winner mustBe Some(1, "Highest Card", Seq((3, Hearts)))
       }
       "tie when both hands have the same values" in {
         val winner = comparator.compare("2H 3D 4S 5C 6D", "2D 3H 4C 5S 6S")
@@ -35,7 +36,7 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
       }
       "both players have a pair of equal value, the one with the highest card wins" in {
         val winner = comparator.compare("2H 2D 3S 4C AD", "2C 2S 3C 4S 5D")
-        winner mustBe Some(1, "Highest Card", Seq())
+        winner mustBe Some(1, "Highest Card", Seq((14, Diamonds)))
       }
     }
     "apply the Double Pair rule" when {
@@ -53,7 +54,7 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
       }
       "oth players with double pair, equal pairs, then highest card wins" in {
         val winner = comparator.compare("AS AH KC KD QS", "AC AD KS KH JS")
-        winner mustBe Some(1, "Highest Card", Seq())
+        winner mustBe Some(1, "Highest Card", Seq((12, Spades)))
       }
     }
     "apply the Three of a Kind rule" when {
