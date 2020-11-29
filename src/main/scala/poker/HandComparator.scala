@@ -69,6 +69,25 @@ case class ThreeOfAKind() extends PokerRule {
     ))
   }
 }
+case class Straight() extends PokerRule {
+  override def findWinner(player1HandValues: Seq[Int], player2HandValues: Seq[Int]): Option[Int] = {
+    playerWithHighestValue(
+      playerHasConsecutiveValues(player1HandValues),
+      playerHasConsecutiveValues(player2HandValues)
+    )
+  }
+  private def playerHasConsecutiveValues(values: Seq[Int]): Option[Int] = {
+    val highestInConsecutive = values
+      .sorted
+      .fold(-1)((acc, value) => acc match {
+        case -1 => value
+        case _ if value - acc == 1 => value
+        case _ => 0
+      })
+    if (highestInConsecutive > 0) Some(highestInConsecutive) else None
+  }
+}
+
 class HandComparator {
   def compare(firstPlayerHand: String, secondPlayerHand: String): Option[Int] = {
     val player1HandValues = handValues(firstPlayerHand)
@@ -81,6 +100,7 @@ class HandComparator {
   }
 
   private def prioritizedRules: Seq[PokerRule] = Seq(
+    Straight(),
     ThreeOfAKind(),
     DoublePair(),
     Pair(),

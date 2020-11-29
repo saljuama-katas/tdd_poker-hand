@@ -62,5 +62,15 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
         winner mustBe Some(1)
       }
     }
+    "apply the Straight rule" when {
+      "straight beats three of a kind" in {
+        val winner = comparator.compare("2H 3D 4C 5S 6H", "AH AC AD KS QH")
+        winner mustBe Some(1)
+      }
+      "both players with straight, the highest card wins" in {
+        val winner = comparator.compare("2H 3D 4C 5S 6H", "3H 4S 5D 6S 7C")
+        winner mustBe Some(2)
+      }
+    }
   }
 }
