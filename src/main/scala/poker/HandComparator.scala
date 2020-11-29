@@ -3,17 +3,28 @@ package poker
 trait PokerRule {
   def name: String
   def apply(player1HandValues: Seq[Int], player2HandValues: Seq[Int]): Int
+
+  protected def findValueNTimes(values: Seq[Int], times: Int): Int = {
+    values
+      .map { x => x -> values.count(y => x == y) }
+      .find { _._2 == times }
+      .map { _._1 }
+      .getOrElse(0)
+  }
+  protected def playerWithHighestValue(values: (Int, Int)): Int = {
+    values match {
+      case (player1, player2) if player1 > player2 => 1
+      case (player1, player2) if player1 < player2 => 2
+      case _ => 0
+    }
+  }
 }
 case class HighestCard() extends PokerRule {
   override def name = "Highest Card"
   override def apply(player1HandValues: Seq[Int], player2HandValues: Seq[Int]): Int = {
     Range.inclusive(0, 4)
       .map { index => (player1HandValues(index), player2HandValues(index)) }
-      .map {
-        case (f, s) if f > s => 1
-        case (f, s) if f < s => 2
-        case _ => 0
-      }
+      .map { playerWithHighestValue }
       .find(x => x != 0)
       .getOrElse(0)
   }
@@ -21,18 +32,10 @@ case class HighestCard() extends PokerRule {
 case class Pair() extends PokerRule {
   override def name = "Pair"
   override def apply(player1HandValues: Seq[Int], player2HandValues: Seq[Int]): Int = {
-    (handPairValue(player1HandValues), handPairValue(player2HandValues)) match {
-      case (f, s) if f > s => 1
-      case (f, s) if f < s => 2
-      case _ => 0
-    }
-  }
-  private def handPairValue(values: Seq[Int]): Int = {
-    values
-      .map { x => x -> values.count(y => x == y) }
-      .find { _._2 == 2 }
-      .map { _._1}
-      .getOrElse(0)
+    playerWithHighestValue((
+      findValueNTimes(player1HandValues, 2),
+      findValueNTimes(player2HandValues, 2)
+    ))
   }
 }
 case class DoublePair() extends PokerRule {
@@ -49,8 +52,8 @@ case class DoublePair() extends PokerRule {
   private def handDoublePairValues(values: Seq[Int]): (Int, Int) = {
     val pairs = values
       .map { x => x -> values.count(y => x == y) }
-      .filter { _._2 == 2 }
       .distinct
+      .filter { _._2 == 2 }
       .map { _._1 }
       .sorted { Ordering.Int.reverse }
 
@@ -63,22 +66,10 @@ case class DoublePair() extends PokerRule {
 case class ThreeOfAKind() extends PokerRule {
   override def name: String = "Three of a Kind"
   override def apply(player1HandValues: Seq[Int], player2HandValues: Seq[Int]): Int = {
-    (handTripleValue(player1HandValues), handTripleValue(player2HandValues)) match {
-      case (f, s) if f > s => 1
-      case (f, s) if f < s => 2
-      case _ => 0
-    }
-  }
-  private def handTripleValue(values: Seq[Int]): Int = {
-    values
-      .map { x => x -> values.count(y => x == y) }
-      .find {
-        _._2 == 3
-      }
-      .map {
-        _._1
-      }
-      .getOrElse(0)
+    playerWithHighestValue((
+      findValueNTimes(player1HandValues, 3),
+      findValueNTimes(player2HandValues, 3)
+    ))
   }
 }
 class HandComparator {
