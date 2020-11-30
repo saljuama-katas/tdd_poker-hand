@@ -60,6 +60,17 @@ sealed trait PokerRule {
     }
   }
 
+  protected def handHasConsecutiveCardValues(hand: Hand): Option[Hand] = {
+    val highestInConsecutive: Int = handValues(hand)
+      .sorted
+      .fold(-1)((acc: Int, value: Int) => acc match {
+        case -1 => value
+        case _ if value - acc == 1 => value
+        case _ => 0
+      })
+    if (highestInConsecutive > 0) Some(hand) else None
+  }
+
   @deprecated
   protected def handHasValueRepeatedNTimes(hand: Hand, times: Int): Option[Int] = {
     val values = handValues(hand)
@@ -89,9 +100,9 @@ sealed trait PokerRule {
 
   @deprecated
   protected def handHasConsecutiveValues(hand: Hand): Option[Int] = {
-    val highestInConsecutive = handValues(hand)
+    val highestInConsecutive: Int = handValues(hand)
       .sorted
-      .fold(-1)((acc, value) => acc match {
+      .fold(-1)((acc: Int, value: Int) => acc match {
         case -1 => value
         case _ if value - acc == 1 => value
         case _ => 0
@@ -201,6 +212,12 @@ case class Straight() extends PokerRule {
       handHasConsecutiveValues(player1Hand),
       handHasConsecutiveValues(player2Hand)
     )
+  }
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
+    ruleWinnerWithCards((
+      handHasConsecutiveCardValues(player1Hand),
+      handHasConsecutiveCardValues(player2Hand)
+    ))
   }
 }
 
