@@ -286,8 +286,18 @@ case class StraightFlush() extends PokerRule {
       playerHasConsecutiveValuesOfSameSuite(player2Hand)
     )
   }
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
+    ruleWinnerWithCards((
+      handIsStraightFlush(player1Hand),
+      handIsStraightFlush(player2Hand)
+    ))
+  }
   private def playerHasConsecutiveValuesOfSameSuite(hand: Hand): Option[Int] = {
     if (handSuites(hand).distinct.length != 1) None
     else handHasConsecutiveValues(hand)
+  }
+  private def handIsStraightFlush(hand: Hand): Option[Hand] = {
+    if (handSuites(hand).distinct.length != 1) None
+    else handHasConsecutiveCardValues(hand)
   }
 }
