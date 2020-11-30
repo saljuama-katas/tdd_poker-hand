@@ -126,7 +126,6 @@ case class Pair() extends PokerRule {
       handHasValueRepeatedNTimes(player2Hand, 2)
     ))
   }
-
   override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
     ruleWinnerWithCards((
       handHasCardsWithRepeatedValuesNTimes(player1Hand, 2),
@@ -151,6 +150,12 @@ case class ThreeOfAKind() extends PokerRule {
     ruleWinner((
       handHasValueRepeatedNTimes(player1Hand, 3),
       handHasValueRepeatedNTimes(player2Hand, 3)
+    ))
+  }
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
+    ruleWinnerWithCards((
+      handHasCardsWithRepeatedValuesNTimes(player1Hand, 3),
+      handHasCardsWithRepeatedValuesNTimes(player2Hand, 3)
     ))
   }
 }
@@ -195,6 +200,12 @@ case class FourOfAKind() extends PokerRule {
     ruleWinner((
       handHasValueRepeatedNTimes(player1Hand, 4),
       handHasValueRepeatedNTimes(player2Hand, 4)
+    ))
+  }
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
+    ruleWinnerWithCards((
+      handHasCardsWithRepeatedValuesNTimes(player1Hand, 4),
+      handHasCardsWithRepeatedValuesNTimes(player2Hand, 4)
     ))
   }
 }

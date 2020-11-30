@@ -59,12 +59,12 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
     }
     "apply the Three of a Kind rule" when {
       "three of a kind beats double pair" in {
-        val winner = comparator.compare("AH AD KS KC QD", "JC JH JC 2S 3D")
-        winner mustBe Some(2, "Three of a kind", Set())
+        val winner = comparator.compare("AH AD KS KC QD", "JC JH JD 2S 3D")
+        winner mustBe Some(2, "Three of a kind", Set((11, Clubs), (11, Hearts), (11, Diamonds)))
       }
       "both players with three of a kind, the highest wins" in {
         val winner = comparator.compare("JH JD JS 2C 3D", "8C 8H 8C QS KD")
-        winner mustBe Some(1, "Three of a kind", Set())
+        winner mustBe Some(1, "Three of a kind", Set((11, Spades), (11, Hearts), (11, Diamonds)))
       }
     }
     "apply the Straight rule" when {
@@ -100,11 +100,11 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
     "apply the Four of a Kind rule" when {
       "Four of a kind beats full house" in {
         val winner = comparator.compare("7H 7C 7S 8H 8D", "3H 3D 3C 3S 4H")
-        winner mustBe Some(2, "Four of a kind", Set())
+        winner mustBe Some(2, "Four of a kind", Set((3, Hearts), (3, Diamonds), (3, Clubs), (3, Spades)))
       }
       "both players with Four of a Kind, the highest four of a kind wins" in {
         val winner = comparator.compare("4H 4C 4S 4D 8D", "3H 3D 3C 3S AH")
-        winner mustBe Some(1, "Four of a kind", Set())
+        winner mustBe Some(1, "Four of a kind", Set((4, Hearts), (4, Diamonds), (4, Clubs), (4, Spades)))
       }
     }
     "apply the Straight Flush rule" when {
