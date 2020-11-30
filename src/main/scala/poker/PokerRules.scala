@@ -229,9 +229,20 @@ case class Flush() extends PokerRule {
       highestCardWithFlush(player2Hand)
     )
   }
+
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
+    ruleWinnerWithCards((
+      handHasFlush(player1Hand),
+      handHasFlush(player2Hand)
+    ))
+  }
   private def highestCardWithFlush(hand: Hand): Option[Int] = {
     if (hand.map {_._2}.distinct.length != 1) None
     else hand.map {_._1}.headOption
+  }
+  private def handHasFlush(hand: Hand): Option[Hand] = {
+    if (hand.map {_._2}.distinct.length != 1) None
+    else Some(hand)
   }
 }
 

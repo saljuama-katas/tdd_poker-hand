@@ -80,11 +80,11 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
     "apply the Flush rule" when {
       "flush beats straight" in {
         val winner = comparator.compare("AH KS QD JS TC", "2S 3S 7S 8S 9S")
-        winner mustBe Some(2, "Flush", Set())
+        winner mustBe Some(2, "Flush", Set((2, Spades),(3, Spades),(7, Spades),(8, Spades),(9, Spades)))
       }
       "both players with flush, the highest card wins" in {
         val winner = comparator.compare("3H 4H 5H 6H AH", "2S 3S 7S 8S 9S")
-        winner mustBe Some(1, "Flush", Set())
+        winner mustBe Some(1, "Flush", Set((3, Hearts),(4, Hearts),(5, Hearts),(6, Hearts),(14, Hearts)))
       }
     }
     "apply the Full House rule" when {
