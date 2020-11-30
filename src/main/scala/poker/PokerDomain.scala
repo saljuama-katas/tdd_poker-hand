@@ -9,5 +9,4 @@ import Suite._
 object PokerDomain {
   type Card = (Int, Suite)
   type Hand = Seq[Card]
-  type Winner = Option[Int]
 }
