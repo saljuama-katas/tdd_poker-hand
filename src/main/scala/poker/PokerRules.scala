@@ -9,21 +9,29 @@ sealed trait PokerRule {
   @deprecated
   def findWinner(player1Hand: Hand, player2Hand: Hand): Winner
 
-  def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Seq[Card])] = {
+  def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
     findWinner(player1Hand, player2Hand)
-      .map { player => (player, name, Seq())}
+      .map { player => (player, name, Set())}
   }
 
   protected def handValues(hand: Hand): Seq[Int] = hand.map {_._1}
 
   protected def handSuites(hand: Hand): Seq[Suite] = hand.map {_._2}
 
+  @deprecated
   protected def handHasValueRepeatedNTimes(hand: Hand, times: Int): Option[Int] = {
     val values = handValues(hand)
     values
       .map { cardValue: Int => cardValue -> values.count(y => cardValue == y) }
       .find {_._2 == times}
       .map {_._1}
+  }
+
+  protected def handHasCardsWithRepeatedValuesNTimes(hand: Hand, times: Int): Option[Seq[Card]] = {
+    hand
+      .groupBy { _._1 }
+      .find { _._2.length == times }
+      .map { _._2 }
   }
 
   protected def handHasCombinationsOfNTimes(hand: Hand, firstTimes: Int, secondTimes: Int): (Option[Int], Option[Int]) = {
@@ -65,12 +73,12 @@ sealed trait PokerRule {
     }
   }
 
-  protected def ruleWinnerWithCards(cards: (Option[Card], Option[Card])): Option[(Int, String, Seq[Card])] = {
+  protected def ruleWinnerWithCards(cards: (Option[Seq[Card]], Option[Seq[Card]])): Option[(Int, String, Set[Card])] = {
     cards match {
-      case (Some(player1Card), Some((player2, _))) if player1Card._1 > player2 => Some(1, name, Seq(player1Card))
-      case (Some((player1, _)), Some(player2Card)) if player1 < player2Card._1 => Some(2, name, Seq(player2Card))
-      case (Some(player1Card), None) => Some(1, name, Seq(player1Card))
-      case (None, Some(player2Card)) => Some(2, name, Seq(player2Card))
+      case (Some(player1Cards), None) => Some(1, name, player1Cards.toSet)
+      case (None, Some(player2Cards)) => Some(2, name, player2Cards.toSet)
+      case (Some(player1Cards), Some(player2Cards)) if player1Cards.head._1 > player2Cards.head._1 => Some(1, name, player1Cards.toSet)
+      case (Some(player1Cards), Some(player2Cards)) if player1Cards.head._1 < player2Cards.head._1 => Some(2, name, player2Cards.toSet)
       case _ => None
     }
   }
@@ -100,10 +108,9 @@ case class HighestCard() extends PokerRule {
       .map { case Some(player) => player }
       .headOption
   }
-
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Seq[(Int, Suite)])] = {
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
     Range.inclusive(0, 4)
-      .map { index => (Some(player1Hand(index)), Some(player2Hand(index))) }
+      .map { index => (Some(Seq(player1Hand(index))), Some(Seq(player2Hand(index)))) }
       .map { ruleWinnerWithCards }
       .filter { _.isDefined }
       .map { case Some(player) => player }
@@ -117,6 +124,13 @@ case class Pair() extends PokerRule {
     ruleWinner((
       handHasValueRepeatedNTimes(player1Hand, 2),
       handHasValueRepeatedNTimes(player2Hand, 2)
+    ))
+  }
+
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
+    ruleWinnerWithCards((
+      handHasCardsWithRepeatedValuesNTimes(player1Hand, 2),
+      handHasCardsWithRepeatedValuesNTimes(player2Hand, 2)
     ))
   }
 }

@@ -16,7 +16,7 @@ class HandComparator {
     HighestCard()
   )
 
-  def compare(firstPlayerHand: String, secondPlayerHand: String): Option[(Int, String, Seq[Card])] = {
+  def compare(firstPlayerHand: String, secondPlayerHand: String): Option[(Int, String, Set[Card])] = {
     val player1Hand = parseHand(firstPlayerHand)
     val player2Hand = parseHand(secondPlayerHand)
     prioritizedRules
