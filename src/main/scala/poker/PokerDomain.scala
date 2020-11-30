@@ -9,4 +9,7 @@ import Suite._
 object PokerDomain {
   type Card = (Int, Suite)
   type Hand = Seq[Card]
+
+  type Combination = Seq[Card]
+  type PokerRuleOutcome = Option[(Int, String, Set[Card])]
 }

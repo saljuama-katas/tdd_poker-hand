@@ -5,16 +5,15 @@ import Suite._
 
 sealed trait PokerRule {
   def name: String
-  def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])]
+  def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome
 
-  protected def handHasCardsWithRepeatedValuesNTimes(hand: Hand, times: Int): Option[Seq[Card]] = {
+  protected def extractCombinationOfRepeatedValues(hand: Hand, times: Int): Option[Combination] = {
     hand
       .groupBy { _._1 }
       .find { _._2.length == times }
       .map { _._2 }
   }
-
-  protected def handHasCardCombinationsWithRepeatedValuesNTimes(hand: Hand, firstTimes: Int, secondTimes:Int): Option[(Seq[Card], Seq[Card])] = {
+  protected def extractMultipleCombinationsOfRepeatedValues(hand: Hand, firstTimes: Int, secondTimes:Int): Option[(Combination, Combination)] = {
     val groupingsByValue = hand.groupBy { _._1 }
 
     val firstSetOfCards: Option[(Int, Seq[(Int, Suite)])] = groupingsByValue.find { _._2.length == firstTimes }
@@ -26,20 +25,16 @@ sealed trait PokerRule {
       case _ => None
     }
   }
-
-  protected def handHasConsecutiveCardValues(hand: Hand): Option[Hand] = {
-    val highestInConsecutive: Int = hand
-      .map {_._1}
-      .sorted
+  protected def handHasAllCardsSameSuite(hand: Hand): Boolean = hand.map {_._2}.distinct.length == 1
+  protected def handHasConsecutiveValues(hand: Hand): Boolean = {
+    hand.map {_._1}.sorted
       .fold(-1)((acc: Int, value: Int) => acc match {
         case -1 => value
         case _ if value - acc == 1 => value
         case _ => 0
-      })
-    if (highestInConsecutive > 0) Some(hand) else None
+      }) > 0
   }
-
-  protected def ruleWinnerWithCards(cards: (Option[Seq[Card]], Option[Seq[Card]])): Option[(Int, String, Set[Card])] = {
+  protected def calculateOutcomeForCombination(cards: (Option[Combination], Option[Combination])): PokerRuleOutcome = {
     cards match {
       case (Some(player1Cards), None) => Some(1, name, player1Cards.toSet)
       case (None, Some(player2Cards)) => Some(2, name, player2Cards.toSet)
@@ -48,8 +43,7 @@ sealed trait PokerRule {
       case _ => None
     }
   }
-
-  protected def ruleWinnerWithCombinationCards(cards: (Option[(Seq[Card], Seq[Card])], Option[(Seq[Card], Seq[Card])])): Option[(Int, String, Set[Card])] = {
+  protected def calculateOutcomeForMultipleCombinations(cards: (Option[(Combination, Combination)], Option[(Combination, Combination)])): PokerRuleOutcome = {
     cards match {
       case (Some((p1c1, p1c2)), None) => Some(1, name, (p1c1 ++ p1c2).toSet)
       case (None, Some((p2c1, p2c2))) => Some(2, name, (p2c1 ++ p2c2).toSet)
@@ -64,100 +58,92 @@ sealed trait PokerRule {
 
 case class HighestCard() extends PokerRule {
   override def name: String = "Highest Card"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
     Range.inclusive(0, 4)
       .map { index => (Some(Seq(player1Hand(index))), Some(Seq(player2Hand(index)))) }
-      .map { ruleWinnerWithCards }
+      .map { calculateOutcomeForCombination }
       .filter { _.isDefined }
-      .map { case Some(player) => player }
+      .map { case Some(outcome) => outcome }
       .headOption
   }
 }
 
 case class Pair() extends PokerRule {
   override def name: String = "Pair"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
-    ruleWinnerWithCards((
-      handHasCardsWithRepeatedValuesNTimes(player1Hand, 2),
-      handHasCardsWithRepeatedValuesNTimes(player2Hand, 2)
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
+    calculateOutcomeForCombination((
+      extractCombinationOfRepeatedValues(player1Hand, 2),
+      extractCombinationOfRepeatedValues(player2Hand, 2)
     ))
   }
 }
 
 case class DoublePair() extends PokerRule {
   override def name: String = "Double Pair"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
-    ruleWinnerWithCombinationCards((
-      handHasCardCombinationsWithRepeatedValuesNTimes(player1Hand, 2,2),
-      handHasCardCombinationsWithRepeatedValuesNTimes(player2Hand, 2,2)
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
+    calculateOutcomeForMultipleCombinations((
+      extractMultipleCombinationsOfRepeatedValues(player1Hand, 2,2),
+      extractMultipleCombinationsOfRepeatedValues(player2Hand, 2,2)
     ))
   }
 }
 
 case class ThreeOfAKind() extends PokerRule {
   override def name: String = "Three of a kind"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
-    ruleWinnerWithCards((
-      handHasCardsWithRepeatedValuesNTimes(player1Hand, 3),
-      handHasCardsWithRepeatedValuesNTimes(player2Hand, 3)
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
+    calculateOutcomeForCombination((
+      extractCombinationOfRepeatedValues(player1Hand, 3),
+      extractCombinationOfRepeatedValues(player2Hand, 3)
     ))
   }
 }
 
 case class Straight() extends PokerRule {
   override def name: String = "Straight"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
-    ruleWinnerWithCards((
-      handHasConsecutiveCardValues(player1Hand),
-      handHasConsecutiveCardValues(player2Hand)
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
+    calculateOutcomeForCombination((
+      Some(player1Hand).filter(handHasConsecutiveValues),
+      Some(player2Hand).filter(handHasConsecutiveValues)
     ))
   }
 }
 
 case class Flush() extends PokerRule {
   override def name: String = "Flush"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
-    ruleWinnerWithCards((
-      handHasFlush(player1Hand),
-      handHasFlush(player2Hand)
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
+    calculateOutcomeForCombination((
+      Some(player1Hand).filter(handHasAllCardsSameSuite),
+      Some(player2Hand).filter(handHasAllCardsSameSuite)
     ))
-  }
-  private def handHasFlush(hand: Hand): Option[Hand] = {
-    if (hand.map {_._2}.distinct.length != 1) None
-    else Some(hand)
   }
 }
 
 case class FullHouse() extends PokerRule {
   override def name: String = "Full House"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
-    ruleWinnerWithCombinationCards((
-      handHasCardCombinationsWithRepeatedValuesNTimes(player1Hand, 3,2),
-      handHasCardCombinationsWithRepeatedValuesNTimes(player2Hand, 3,2)
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
+    calculateOutcomeForMultipleCombinations((
+      extractMultipleCombinationsOfRepeatedValues(player1Hand, 3,2),
+      extractMultipleCombinationsOfRepeatedValues(player2Hand, 3,2)
     ))
   }
 }
 
 case class FourOfAKind() extends PokerRule {
   override def name: String = "Four of a kind"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
-    ruleWinnerWithCards((
-      handHasCardsWithRepeatedValuesNTimes(player1Hand, 4),
-      handHasCardsWithRepeatedValuesNTimes(player2Hand, 4)
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
+    calculateOutcomeForCombination((
+      extractCombinationOfRepeatedValues(player1Hand, 4),
+      extractCombinationOfRepeatedValues(player2Hand, 4)
     ))
   }
 }
 
 case class StraightFlush() extends PokerRule {
   override def name: String = "Straight Flush"
-  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
-    ruleWinnerWithCards((
-      handIsStraightFlush(player1Hand),
-      handIsStraightFlush(player2Hand)
+  override def evaluateRule(player1Hand: Hand, player2Hand: Hand): PokerRuleOutcome = {
+    calculateOutcomeForCombination((
+      Some(player1Hand).filter(handHasAllCardsSameSuite).filter(handHasConsecutiveValues),
+      Some(player2Hand).filter(handHasAllCardsSameSuite).filter(handHasConsecutiveValues)
     ))
-  }
-  private def handIsStraightFlush(hand: Hand): Option[Hand] = {
-    if (hand.map {_._2}.distinct.length != 1) None
-    else handHasConsecutiveCardValues(hand)
   }
 }

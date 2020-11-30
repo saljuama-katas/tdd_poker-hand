@@ -20,9 +20,9 @@ class HandComparator {
     val player1Hand = parseHand(firstPlayerHand)
     val player2Hand = parseHand(secondPlayerHand)
     prioritizedRules
-      .map { rule => rule.findWinnerAndCards(player1Hand, player2Hand) }
+      .map { _.evaluateRule(player1Hand, player2Hand) }
       .filter { _.isDefined }
-      .map { case Some(player) => player }
+      .map { case Some(outcome) => outcome }
       .headOption
   }
 }
