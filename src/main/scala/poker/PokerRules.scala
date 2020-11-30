@@ -170,7 +170,6 @@ case class DoublePair() extends PokerRule {
       handHasCombinationsOfNTimes(player2Hand, 2, 2)
     ))
   }
-
   override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
     ruleWinnerWithCombinationCards((
       handHasCardCombinationsWithRepeatedValuesNTimes(player1Hand, 2,2),
@@ -225,6 +224,12 @@ case class FullHouse() extends PokerRule {
     combinationWinner((
       handHasCombinationsOfNTimes(player1Hand, 3, 2),
       handHasCombinationsOfNTimes(player2Hand, 3, 2)
+    ))
+  }
+  override def findWinnerAndCards(player1Hand: Hand, player2Hand: Hand): Option[(Int, String, Set[Card])] = {
+    ruleWinnerWithCombinationCards((
+      handHasCardCombinationsWithRepeatedValuesNTimes(player1Hand, 3,2),
+      handHasCardCombinationsWithRepeatedValuesNTimes(player2Hand, 3,2)
     ))
   }
 }
