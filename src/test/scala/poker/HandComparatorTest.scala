@@ -42,15 +42,15 @@ class HandComparatorTest extends AnyWordSpec with Matchers {
     "apply the Double Pair rule" when {
       "double pair beats pair" in {
         val winner = comparator.compare("2H 2D 3S 3C 5D", "2C 3H 4C AS AD")
-        winner mustBe Some(1, "Double Pair", Set())
+        winner mustBe Some(1, "Double Pair", Set((3, Spades), (3, Clubs), (2, Hearts), (2, Diamonds)))
       }
       "both players with double pair, the highest pair wins" in {
         val winner = comparator.compare("3H 3D 4C JS JD", "2H 2D 4S AC AD")
-        winner mustBe Some(2, "Double Pair", Set())
+        winner mustBe Some(2, "Double Pair", Set((14, Clubs), (14, Diamonds), (2, Hearts), (2, Diamonds)))
       }
       "both players with double pair, and equal highest pair, then 2nd highest pair wins" in {
         val winner = comparator.compare("AS AH 3H 3D 4C", "AC AD 2H 2D KS")
-        winner mustBe Some(1, "Double Pair", Set())
+        winner mustBe Some(1, "Double Pair", Set((14, Spades), (14, Hearts), (3, Hearts), (3, Diamonds)))
       }
       "oth players with double pair, equal pairs, then highest card wins" in {
         val winner = comparator.compare("AS AH KC KD QS", "AC AD KS KH JS")
